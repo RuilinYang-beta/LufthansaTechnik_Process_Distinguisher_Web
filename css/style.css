@@ -29,23 +29,61 @@ h2 {
 
 /* ---------- header ----------*/
 .header {
-  /* position: -webkit-sticky; */
-  position: sticky;
+  position: fixed;
   top: 0;
+  width: 100%;
+  height: 60px;
   background-color: var(--primary-blue);
   color: var(--grey);
+}
+
+.header .container {
+  display: flex;
+  align-items: center;
+}
+
+.header .hamburger {
+  width: 70px;
+  height: 100%;
+  text-align: center;
+  padding: 0px 17px;
+  cursor: pointer;
+}
+
+.header .hamburger div {
+  width: 35px;
+  height: 5px;
+  margin: 8px 0;
+  background: var(--grey);
+  border-radius: 5px;
+}
+
+.logo {
+  width: 100%;
+  text-align: center;
 }
 
 /* ---------- navbar ----------*/
 .navbar {
-  color: var(--grey);
+  /* border: solid; */
+  position: fixed;
+  top: 60px;
+  overflow: auto;
   width: 20%;
-  height: 100%;
-  /* position: fixed; */
+  height: calc(100% - 60px);
+  color: var(--grey);
+  transform: translateX(0);
+  transition: transform 0.3s ease-in;
+}
+
+.collapse {
+  transform: translateX(calc(-100% + 10px));
 }
 
 .navbar .container {
-  background-color: var(--primary-blue);
+  /* in case screen is taller than all items combined,
+   this will color the empty are */
+  background: var(--primary-blue);
   padding: 0;
 }
 
@@ -56,6 +94,7 @@ h2 {
 }
 
 nav {
+  margin-top: 10px;
   /* border: solid; */
   width: 100%;
 }
@@ -63,6 +102,10 @@ nav {
 .navbar a {
   display: block;
   color: var(--grey);
+  /* in case navbar item overflow, 
+  some items can only be seen when scroll down, 
+  color these items */
+  background: var(--primary-blue);
   font-size: 1.5em;
   line-height: 220%;
   padding: 0 40px;
@@ -84,7 +127,7 @@ nav {
 }
 
 /* ---------- options ----------*/
-.options {
+.main_container {
   margin-left: 20%;
   width: 80%;
   /* border: solid black; */
