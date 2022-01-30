@@ -49,12 +49,12 @@
 }
 
 .btn-outline {
-  background-color: transparent;
+  background-color: var(--grey);
   border: 1px #fff solid;
 }
 
 .btn:hover {
-  transform: scale(0.95);
+  transform: scale(1.05);
 }
 
 .text-center {

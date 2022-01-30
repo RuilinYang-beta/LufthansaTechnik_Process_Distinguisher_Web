@@ -76,8 +76,9 @@ h2 {
   transition: transform 0.3s ease-in;
 }
 
+/* - when navbar collapsed -*/
 .collapse {
-  transform: translateX(calc(-100% + 20px));
+  transform: translateX(calc(-100% + 10px));
 }
 
 .navbar .container {
@@ -135,6 +136,14 @@ nav {
   position: fixed;
   top: 60px;
   height: calc(100% - 60px);
+  overflow: auto;
+  padding: 0 80px;
+  transition: all 0.3s ease-in-out;
+}
+
+.expand {
+  width: 100%;
+  margin-left: 0;
 }
 
 /* ---- task area header ---- */
@@ -217,4 +226,18 @@ input[type="checkbox"] {
 .subtask {
   display: block;
   width: auto;
+}
+
+/* ---- buttons ---- */
+.buttons {
+  margin-top: 60px;
+}
+
+.buttons .container {
+  border: solid;
+  justify-content: space-between;
+  width: 100%;
+  height: 70px;
+  /* position: absolute;
+  bottom: 50px; */
 }
