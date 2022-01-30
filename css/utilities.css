@@ -1,0 +1,62 @@
+/* ====== styles that are repeatedly used ====== */
+:root {
+  --primary-blue: #003d7a;
+  --secondary-blue: #006aa2;
+  --yellow: #ffad00;
+  --light: #f6f7fc;
+  --grey: #d8dff1;
+  --dark: #002240;
+}
+
+/* -------------------- layout -------------------- */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  /* border-style: solid; */
+  padding: 0 40px;
+}
+
+.flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  justify-content: center;
+  justify-items: start;
+  align-items: center;
+  height: 100%;
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* -------------------- button -------------------- */
+.btn {
+  display: inline-block;
+  padding: 10px 30px;
+  cursor: pointer;
+  background-color: var(--primary-blue);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px #fff solid;
+}
+
+.btn:hover {
+  transform: scale(0.95);
+}
+
+.text-center {
+  text-align: center;
+}
