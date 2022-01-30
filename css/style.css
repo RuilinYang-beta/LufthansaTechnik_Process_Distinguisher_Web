@@ -77,7 +77,7 @@ h2 {
 }
 
 .collapse {
-  transform: translateX(calc(-100% + 10px));
+  transform: translateX(calc(-100% + 20px));
 }
 
 .navbar .container {
@@ -126,21 +126,15 @@ nav {
   color: var(--primary-blue);
 }
 
-/* ---------- options ----------*/
+/* ---------- main container ----------*/
 .main_container {
+  /* margin-top: 60px; */
   margin-left: 20%;
   width: 80%;
-  /* border: solid black; */
-  height: 100%;
-  background: yellow;
-  /* position: fixed; */
-  /* height: 650px; */
-}
-
-.taskArea {
-  border: solid;
-  margin-left: 20%;
-  height: 650px;
+  /* background: yellow; */
+  position: fixed;
+  top: 60px;
+  height: calc(100% - 60px);
 }
 
 /* ---- task area header ---- */
@@ -148,13 +142,15 @@ nav {
   border: solid;
   display: flex;
   justify-content: space-between;
-  padding: 10px 70px 0 100px;
+  padding: 10px 70px 0 80px;
+  height: 60px;
 }
 
 .taskAreaHeader h2 {
   /* border: solid; */
   display: inline;
   margin: 0;
+  line-height: 2em;
 }
 
 .taskAreaHeader span {
@@ -163,28 +159,27 @@ nav {
 }
 
 /* ---- task area container ---- */
+.taskArea {
+  border: solid var(--grey);
+  height: 650px; /* to limit the height of grid */
+  border-radius: 3%;
+  padding: 10px 0 0 50px;
+}
+
 .taskArea .grid {
   overflow: auto; /* let the grid scroll */
 }
 
-.taskArea .container {
-  margin: 0 40px;
-  border: solid var(--grey);
-  border-radius: 3%;
-}
-
 /* ---- task items ---- */
 .task {
-  display: flex;
-  align-items: center;
   /* border: solid; */
-  padding: 0 20px 0 0;
+  padding: 0 10px;
   border-radius: 5%;
   border-bottom: 1px solid #d8dff1;
   font-size: 1.5em;
   cursor: pointer;
   position: relative;
-  display: inline-block;
+  vertical-align: baseline;
 }
 
 .task:hover {
@@ -192,10 +187,15 @@ nav {
 }
 
 input[type="checkbox"] {
-  margin: 20px;
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
+  display: inline-block;
+  vertical-align: sub;
+}
+
+.task span {
+  border: solid;
 }
 
 .subtasks {
