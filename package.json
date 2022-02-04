@@ -1,0 +1,26 @@
+{
+  "name": "lht_process_distinguisher",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server",
+    "dev": "nodemon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RuilinYang-beta/LufthansaTechnik_Process_Distinguisher_Web.git"
+  },
+  "author": "Ruilin Yang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RuilinYang-beta/LufthansaTechnik_Process_Distinguisher_Web/issues"
+  },
+  "homepage": "https://github.com/RuilinYang-beta/LufthansaTechnik_Process_Distinguisher_Web#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "express": "^4.17.2"
+  }
+}
