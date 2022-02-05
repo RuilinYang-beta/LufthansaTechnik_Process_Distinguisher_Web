@@ -19,4 +19,15 @@ $(".header .logo").click(() => {
       console.log(`Error ${error}`);
     },
   });
+
+  $.ajax({
+    url: "./api/phases",
+    type: "GET",
+    success: (result) => {
+      console.log(result);
+    },
+    error: (error) => {
+      console.log(`Error ${error}`);
+    },
+  });
 });

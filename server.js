@@ -14,6 +14,11 @@ app.get("/api/templates", (req, res) => {
   res.send(JSON.stringify(getPhaseCenteredTemplates(templates, phases)));
 });
 
+app.get("/api/phases", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(JSON.stringify(phases));
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
