@@ -76,6 +76,9 @@ h2 {
   transition: transform 0.3s ease-in;
 }
 
+.navbar li {
+  font-size: 0.8em;
+}
 /* - when navbar collapsed -*/
 .collapse {
   transform: translateX(calc(-100% + 10px));
@@ -122,6 +125,7 @@ nav {
   background: var(--grey);
   color: var(--primary-blue);
 }
+
 .navbar a:focus {
   background: var(--grey);
   color: var(--primary-blue);
