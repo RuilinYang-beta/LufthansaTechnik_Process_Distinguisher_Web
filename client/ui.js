@@ -10,32 +10,17 @@ $(".hamburger").click(() => {
 
 // ============ Initialization ============
 // ----- get data from backend -----
+
 // temp: send GET when click on logo
 $(".header .logo").click(() => {
-  $.ajax({
-    url: "./api/templates",
-    type: "GET",
-    success: (result) => {
-      templates = result;
-    },
-    error: (error) => {
-      console.log(`Error ${error}`);
-    },
-  });
+  $.when($.get("./api/templates"), $.get("./api/phases")).done(
+    (result1, result2) => {
+      templates = result1[0];
+      phases = result2[0];
 
-  $.ajax({
-    url: "./api/phases",
-    type: "GET",
-    success: (result) => {
-      phases = result;
-      // TODO: make sure when this line happen, `templates` is also ready
-      // async, await
       initDisplay(phases);
-    },
-    error: (error) => {
-      console.log(`Error ${error}`);
-    },
-  });
+    }
+  );
 });
 
 // ----- display init phase -----
@@ -54,6 +39,7 @@ const initDisplay = () => {
 
   // focus on the first phase
   $(".navbar li:first-child a").focus();
+  showTasksOfFocusedPhase();
 };
 
 // ============ General interactions ============
@@ -64,11 +50,10 @@ const initDisplay = () => {
 
 const showTasksOfFocusedPhase = () => {
   // clear existing tasks
-  // TODO: do I need to add event listener to tasks??
+  // TODO: do I need to add event listener to tasks?? --> no, that's handled by css
   $(".taskArea div.grid").html("");
 
   const focusedPhase = $("a:focus").text();
-  console.log(focusedPhase);
   const tasks = templates[focusedPhase];
   for (let taskId in tasks) {
     $(".taskArea div.grid").append(_makeTaskElement(taskId, tasks));
