@@ -1,8 +1,11 @@
 // a phase-centered template, also can be used to calc score
 let templates;
 let phases;
-let temp; // temporary variable
-let currentPhase;
+// because html element requires some pattern,
+// raw task id need to be cleaned,
+// these two objects record the two way conversion of rawId <- -> cleaned id
+const idRawToCleaned = {};
+const idCleanedToRaw = {};
 
 $(".hamburger").click(() => {
   $(".navbar").toggleClass("collapse");
@@ -12,7 +15,7 @@ $(".hamburger").click(() => {
 // ============ Initialization ============
 // ----- get data from backend -----
 // temp: send GET when click on logo
-$(".header .logo").click(() => {
+$(document).ready(() => {
   $.when($.get("./api/templates"), $.get("./api/phases")).done(
     (result1, result2) => {
       templates = result1[0];
@@ -34,6 +37,7 @@ const initDisplay = () => {
   // phase event listener: click -> focus
   // and show tasks of the focused phase
   $(".navbar li a").click((e) => {
+    _writeChosenTasks();
     _focusOnlyOnOnePhase(false, e);
     showTasksOfFocusedPhase();
   });
@@ -50,20 +54,18 @@ const _focusOnlyOnOnePhase = (
   childToFocus = undefined
 ) => {
   if (!fromBtn && e !== undefined) {
-    // changing focus is not from prev/next button click
+    // changing focus is from click phase on sidebar
     $(".navbar li a").removeClass("focused");
     $(e.target).addClass("focused");
   } else {
     // changing focus is the result of prev/next button click
     $(".navbar li a").removeClass("focused");
-    console.log(`idxToFocus: ${childToFocus}`);
     $(`.navbar li:nth-child(${childToFocus}) a`).addClass("focused");
   }
 };
 
 // ============ sidebar: show tasks of the focused phase ============
 const showTasksOfFocusedPhase = () => {
-  // TODO: do I need to add event listener to tasks?? --> no, that's handled by css
   const focusedPhase = $("a.focused").text();
   const tasks = templates[focusedPhase];
 
@@ -79,14 +81,44 @@ const showTasksOfFocusedPhase = () => {
   // update checkbox accordingly
 };
 
-const _makeTaskElement = (taskId, tasks) => {
-  // TODO: accommodate subtasks
+const _makeTaskElement = (rawId, tasks) => {
+  const cleanedId = __getCleanedId(rawId);
+  // record bi-directional mapping
+  idRawToCleaned[rawId] = cleanedId;
+  idCleanedToRaw[cleanedId] = rawId;
+
+  // const phase = __getPhaseFromCleanedId(rawId);
+
+  // if (templates[phase][rawId]["chosen"]) {
+  //   return `
+  //   <label class="task">
+  //   <input type="checkbox" id="${cleanedId}" checked/>
+  //   ${tasks[rawId]["task"]}
+  //   </label>
+  //   `;
+  // } else {
+  //   return `
+  //   <label class="task">
+  //   <input type="checkbox" id="${cleanedId}"/>
+  //   ${tasks[rawId]["task"]}
+  //   </label>
+  //   `;
+  // }
+
   return `
-    <label class="task">
-      <input type="checkbox" id=${taskId}/>
-      ${tasks[taskId]["task"]}
+  <label class="task">
+  <input type="checkbox" id="${cleanedId}"/>
+  ${tasks[rawId]["task"]}
   </label>
   `;
+
+  // TODO: accommodate subtasks
+};
+
+const __getCleanedId = (rawId) => {
+  // pattern for all invalid character for html element
+  const pattern = /[^A-Za-z0-9\-\:\.\_]/g;
+  return rawId.replace(pattern, "-");
 };
 
 const _makeSubtaskElement = () => {};
@@ -101,9 +133,10 @@ $(".btn").click((e) => {
   e.preventDefault(); // prevent from reload URL
 });
 
-$("#prvBtn").click((e) => {
+$("#prvBtn").click(() => {
   const focusedPhase = $("a.focused").text();
   const idx = phases.indexOf(focusedPhase);
+  _writeChosenTasks();
 
   if (idx === 0) {
     return;
@@ -111,19 +144,20 @@ $("#prvBtn").click((e) => {
 
   if (idx !== -1) {
     _focusOnlyOnOnePhase(true, 0, idx);
-    // $(`.navbar li:nth-child(${idx - 1}) a`).addClass("focused");
     showTasksOfFocusedPhase();
   } else {
     console.log("Something went wrong, you shouldn't reach here");
   }
 });
 
-$("#nxtBtn").click((e) => {
+$("#nxtBtn").click(() => {
   const focusedPhase = $("a.focused").text();
   const idx = phases.indexOf(focusedPhase);
+  _writeChosenTasks();
 
   if (idx === phases.length - 1) {
     console.log("to result page");
+    // TODO: compute score
     return;
   }
 
@@ -136,10 +170,42 @@ $("#nxtBtn").click((e) => {
 });
 
 $("#rstBtn").click(() => {
-  $('input[type="checkbox"').prop("checked", false);
+  $('input[type="checkbox"]').prop("checked", false);
 });
 
 // ============ read/write from/to `templates` to record choice ============
+const _readChosenTasksAndUpdateUI = () => {};
+
+const _writeChosenTasks = () => {
+  const chosenElements = $(".taskArea .grid input:checked");
+  const chosenIds = Object.entries(chosenElements)
+    .filter(([key, value]) => {
+      return !isNaN(key);
+    })
+    .map(([key, value]) => {
+      return value.id;
+    });
+
+  if (chosenIds.length === 0) {
+    return;
+  }
+
+  // const phase = __getPhaseFromCleanedId(chosenIds[0]);
+
+  // for (let cleanedId of chosenIds) {
+  //   const rawId = idCleanedToRaw[cleanedId];
+  //   templates[phase][rawId]["chosen"] = true;
+  // }
+};
+
+const __getPhaseFromCleanedId = (cleanedId) => {
+  console.log(cleanedId);
+  console.log(idCleanedToRaw);
+  const rawId = idCleanedToRaw[cleanedId];
+  const pattern = /\-[0-9]+$/;
+  const phase = rawId.replace(pattern, "");
+  return phase;
+};
 
 // TODO:whenever user click next or select a diff phase from sidebar,
 // read current status of the checkbox and write to `templates` obj
