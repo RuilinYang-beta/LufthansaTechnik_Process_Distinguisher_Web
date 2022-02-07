@@ -1,3 +1,5 @@
+// TODO: add the other two templates
+
 const LTAA = {
   name: "LTAA",
   phases: [

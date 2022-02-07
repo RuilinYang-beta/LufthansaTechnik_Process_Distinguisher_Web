@@ -121,12 +121,13 @@ nav {
   background: var(--secondary-blue);
 }
 
-.navbar a:active {
+a.focused {
   background: var(--grey);
   color: var(--primary-blue);
 }
 
-.navbar a:focus {
+/* overwrite a:hover when a is of focused class */
+.navbar a.focused:hover {
   background: var(--grey);
   color: var(--primary-blue);
 }
