@@ -1,10 +1,23 @@
 // TODO: add the other two templates
 
+// guarantee that `templates` and `phases` use the same phase name
+const INDUCTION_PREPARATION = "Induction Preparation";
+const INDUCTION = "Induction";
+const INCOMING_INSPECTION = "Incoming Inspection";
+const DISASSEMBLY = "Disassembly";
+const PROVISIONING = "Provisioning";
+const WORK_PLANNING = "Work Planning";
+const WORK_EXECUTION_REPAIR = "Work Execution / Repair";
+const ASSEMBLY = "Assembly";
+const MONITORING = "Monitoring";
+const OUTGOING = "Outgoing";
+const FINISH_MRO_EVENT = "Finish MRO Event";
+
 const LTAA = {
   name: "LTAA",
   phases: [
     {
-      phase: "Induction Preparation",
+      phase: INDUCTION_PREPARATION,
       tasks: [
         {
           task: "Quotation - TX: VA21",
@@ -18,7 +31,7 @@ const LTAA = {
       ],
     },
     {
-      phase: "Induction",
+      phase: INDUCTION,
       tasks: [
         {
           task: "Workscoping - TX: IW51",
@@ -41,7 +54,7 @@ const LTAA = {
       ],
     },
     {
-      phase: "Incoming Inspection",
+      phase: INCOMING_INSPECTION,
       tasks: [
         {
           task: "Printworkbench (TX: ZIPOCR_PRINT e.g. Incoming Accessory List\nIncoming QEX Accessory List\nIncoming Externals List\nIncoming QEC Externals List)",
@@ -49,7 +62,7 @@ const LTAA = {
       ],
     },
     {
-      phase: "Disassembly",
+      phase: DISASSEMBLY,
       tasks: [
         {
           task: "Initial Inspection - TX: IBX",
@@ -75,7 +88,7 @@ const LTAA = {
       ],
     },
     {
-      phase: "Provisioning",
+      phase: PROVISIONING,
       tasks: [
         { task: "Sourcing/ Unsourcing - TX: SRC" },
         { task: "Sortage - Application: FastPro - Fehlteilschnittstelle" },
@@ -83,7 +96,7 @@ const LTAA = {
       ],
     },
     {
-      phase: "Work Execution / Repair",
+      phase: WORK_EXECUTION_REPAIR,
       tasks: [
         { task: "Detailed Inspection - TX: IBX" },
         { task: "Secondary Disposition - TX: IBX" },
@@ -107,22 +120,22 @@ const LTAA = {
       ],
     },
     {
-      phase: "Assembly",
+      phase: ASSEMBLY,
       tasks: [{ task: "Installation - TX: ZIE_INST" }],
     },
     {
-      phase: "Monitoring",
+      phase: MONITORING,
       tasks: [
         { task: "Event Monitoring - TX:ZIOPCR" },
         { task: "Removal Plan - TX: ZI_REMPLAN" },
       ],
     },
     {
-      phase: "Outgoing",
+      phase: OUTGOING,
       tasks: [{ task: "Printing of Documentation - TX: ZIOPCR_PRINT" }],
     },
     {
-      phase: "Finish MRO Event",
+      phase: FINISH_MRO_EVENT,
       tasks: [
         {
           task: "Set Sales Order Status, Set WBS Status, Update Master Batch - TX: IW52",
@@ -135,17 +148,17 @@ const LTAA = {
 
 const templates = [LTAA];
 const phases = [
-  "Induction Preparation",
-  "Induction",
-  "Incoming Inspection",
-  "Disassembly",
-  "Provisioning",
-  "Work Planning",
-  "Work Execution / Repair",
-  "Assembly",
-  "Monitoring",
-  "Outgoing",
-  "Finish MRO Event",
+  INDUCTION_PREPARATION,
+  INDUCTION,
+  INCOMING_INSPECTION,
+  DISASSEMBLY,
+  PROVISIONING,
+  WORK_PLANNING,
+  WORK_EXECUTION_REPAIR,
+  ASSEMBLY,
+  MONITORING,
+  OUTGOING,
+  FINISH_MRO_EVENT,
 ];
 
 module.exports = {

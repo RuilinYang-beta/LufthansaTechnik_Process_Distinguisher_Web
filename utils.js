@@ -1,3 +1,9 @@
+/* ASSUMPTION:
+ * if a task has subtasks, and the task is shared between more than one templates,
+ * its possible that each template has different subtask on that task.
+ */
+
+// TODO: adding task and adding subtask is repetitive, refactor
 const getPhaseCenteredTemplates = (templates, phases) => {
   const phaseCenteredTemplates = {};
   for (let phase of phases) {
@@ -50,9 +56,12 @@ const getPhaseCenteredTemplates = (templates, phases) => {
             }
             taskCounter++;
           } else {
-            // if task is already added
+            // if task is already added,
+            // this happens when two or more phases share a same task
             let taskId = taskToId[taskContent];
             phaseCenteredTemplates[phase][taskId]["templates"].push(template);
+
+            // TODO: check if the already added task has unadded subtask
           }
         }
       }
