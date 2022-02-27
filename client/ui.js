@@ -1,6 +1,9 @@
 // a phase-centered template, also can be used to calc score
 let templates;
 let phases;
+let templateTaskCounts;
+let templateNames;
+
 // id:          the id associate with a task or a subtask, returned from the server
 // raw id:      same with id
 // cleaned id:  obtained by replace the invalid character with '-' from raw id
@@ -24,15 +27,19 @@ $(".hamburger").click(() => {
 $("h1.logo").click(() => {
   // for production: get data on page load
   // $(document).ready(() => {
-  $.when($.get("./api/templates"), $.get("./api/phases")).done(
-    (result1, result2) => {
-      templates = result1[0];
-      phases = result2[0];
+  $.when(
+    $.get("./api/templates"),
+    $.get("./api/phases"),
+    $.get("./api/templateTaskCounts"),
+    $.get("./api/templateNames")
+  ).done((result1, result2, result3, result4) => {
+    templates = result1[0];
+    phases = result2[0];
+    templateTaskCounts = result3[0];
+    templateNames = result4[0];
 
-      // this would happen after the two GETs are done
-      initDisplay();
-    }
-  );
+    initDisplay();
+  });
 });
 
 // ----- display init phase -----
@@ -65,13 +72,21 @@ const _focusOnlyOnOnePhase = (
     // changing focus is from click phase on sidebar
     $(".navbar li a").removeClass("focused");
     $(e.target).addClass("focused");
+
+    if (e.target.innerText === phases[phases.length - 1]) __changeNextBtn();
   } else if (fromBtn && childToFocus !== undefined) {
     // changing focus is the result of prev/next button click
     $(".navbar li a").removeClass("focused");
     $(`.navbar li:nth-child(${childToFocus}) a`).addClass("focused");
+
+    if (childToFocus === phases.length) __changeNextBtn();
   } else {
     console.log(`Error in _focusOnlyOnOnePhase: you should not reach here!`);
   }
+};
+
+const __changeNextBtn = () => {
+  $("#nxtBtn").text("OK, See Result >");
 };
 
 // ============ sidebar: show tasks of the focused phase ============
@@ -215,6 +230,131 @@ const _updateChosenTasks = () => {
 };
 
 // TODO: a function to compute score
+const analyseChosenTasks = () => {
+  const copy = JSON.parse(JSON.stringify(templates));
+  const verboseResult = _getVerboseResult(copy);
+  const conciseRawResult = _getConciseRawResult(verboseResult);
+  const conciseFractionResult = _getConciseFractionResult(
+    conciseRawResult,
+    templateTaskCounts
+  );
+  return { verboseResult, conciseRawResult, conciseFractionResult };
+};
 
+const _getConciseRawResult = (verboseResult) => {
+  const result = __initConciseResult();
+  for (let phaseKey in verboseResult) {
+    for (let taskKey in verboseResult[phaseKey]) {
+      // bookkeeping taskCount
+      if (verboseResult[phaseKey][taskKey]["chosen"]) {
+        verboseResult[phaseKey][taskKey]["templates"].forEach((temp) => {
+          result[temp][phaseKey]["task"] += 1;
+          result[temp]["Summary"]["task"] += 1;
+        });
+      }
+      // bookkeeping subtaskCount
+      if (verboseResult[phaseKey][taskKey].hasOwnProperty("subtasks")) {
+        for (let subtaskKey in verboseResult[phaseKey][taskKey]["subtasks"]) {
+          if (
+            verboseResult[phaseKey][taskKey]["subtasks"][subtaskKey]["chosen"]
+          ) {
+            verboseResult[phaseKey][taskKey]["subtasks"][subtaskKey][
+              "templates"
+            ].forEach((temp) => {
+              result[temp][phaseKey]["subtask"] += 1;
+              result[temp]["Summary"]["subtask"] += 1;
+            });
+          }
+        }
+      }
+    }
+  }
+  return result;
+};
+
+const __initConciseResult = () => {
+  const basis = {};
+  const basisCount = {
+    task: 0,
+    subtask: 0,
+  };
+
+  for (let tempName of templateNames) {
+    const content = {
+      Summary: JSON.parse(JSON.stringify(basisCount)),
+    };
+    for (let phase of phases) {
+      content[phase] = JSON.parse(JSON.stringify(basisCount));
+    }
+    basis[tempName] = content;
+  }
+  return basis;
+};
+
+const _getConciseFractionResult = (conciseRawObj, templateTaskCountObj) => {
+  const result = __initConciseResult();
+  for (let templateName in templateTaskCountObj) {
+    for (let phase in templateTaskCountObj[templateName]) {
+      result[templateName][phase]["task"] = _computeFraction(
+        "task",
+        conciseRawObj,
+        templateTaskCountObj,
+        templateName,
+        phase
+      );
+      result[templateName][phase]["subtask"] = _computeFraction(
+        "subtask",
+        conciseRawObj,
+        templateTaskCountObj,
+        templateName,
+        phase
+      );
+    }
+  }
+  return result;
+};
+
+const _computeFraction = (
+  item,
+  conciseRawObj,
+  templateTaskCountObj,
+  templateName,
+  phase
+) => {
+  const templateTaskCount = templateTaskCountObj[templateName][phase][item];
+  const chosenTaskCount = conciseRawObj[templateName][phase][item];
+  const taskFraction =
+    templateTaskCount === 0
+      ? 0
+      : __roundFraction(chosenTaskCount / templateTaskCount);
+
+  return taskFraction;
+};
+
+const __roundFraction = (fraction) => {
+  return Math.round(fraction * 100) / 100;
+};
+
+const _getVerboseResult = (templates) => {
+  for (let phaseKey in templates) {
+    for (let taskKeyRaw in templates[phaseKey]) {
+      const taskKeyClean = idRawToCleaned[taskKeyRaw];
+      if (chosenIds.has(taskKeyClean)) {
+        templates[phaseKey][taskKeyRaw]["chosen"] = true;
+      }
+      if (templates[phaseKey][taskKeyRaw].hasOwnProperty("subtasks")) {
+        for (let subtaskKeyRaw in templates[phaseKey][taskKeyRaw]["subtasks"]) {
+          const subtaskKeyClean = idRawToCleaned[subtaskKeyRaw];
+          if (chosenIds.has(subtaskKeyClean)) {
+            templates[phaseKey][taskKeyRaw]["subtasks"][subtaskKeyRaw][
+              "chosen"
+            ] = true;
+          }
+        }
+      }
+    }
+  }
+  return templates;
+};
 // TODO: the div of subtasks should have a min width
 // maybe its parent, the task element also should have this min witdh

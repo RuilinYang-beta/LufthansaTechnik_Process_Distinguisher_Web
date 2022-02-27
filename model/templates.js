@@ -146,7 +146,51 @@ const LTAA = {
   ],
 };
 
-const templates = [LTAA];
+const makeTemplateTaskCounts = (templates) => {
+  const templateTaskCounts = {};
+  for (let templateObj of templates) {
+    const taskCountObj = {};
+    for (let phase of phases) {
+      taskCountObj[phase] = {
+        task: 0,
+        subtask: 0,
+      };
+    }
+
+    const summary = {
+      task: 0,
+      subtask: 0,
+    };
+    for (let phaseObj of templateObj["phases"]) {
+      const taskCount = phaseObj["tasks"].length;
+      const subtaskCount = _countSubtaskOfPhase(phaseObj);
+
+      taskCountObj[phaseObj["phase"]] = {
+        task: taskCount,
+        subtask: subtaskCount,
+      };
+
+      summary["task"] += taskCount;
+      summary["subtask"] += subtaskCount;
+    }
+
+    taskCountObj["Summary"] = summary;
+    const templateName = templateObj["name"];
+    templateTaskCounts[templateName] = taskCountObj;
+  }
+  return templateTaskCounts;
+};
+
+const _countSubtaskOfPhase = (phaseObj) => {
+  return phaseObj["tasks"]
+    .map((taskObj) => {
+      return taskObj.hasOwnProperty("subtasks")
+        ? taskObj["subtasks"].length
+        : 0;
+    })
+    .reduce((acc, curr) => acc + curr);
+};
+
 const phases = [
   INDUCTION_PREPARATION,
   INDUCTION,
@@ -160,8 +204,13 @@ const phases = [
   OUTGOING,
   FINISH_MRO_EVENT,
 ];
+const templates = [LTAA];
+const templateNames = templates.map((tempObj) => tempObj.name);
+const templateTaskCounts = makeTemplateTaskCounts(templates);
 
 module.exports = {
   templates,
   phases,
+  templateNames,
+  templateTaskCounts,
 };

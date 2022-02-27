@@ -26,7 +26,7 @@ const getPhaseCenteredTemplates = (templates, phases) => {
             phaseCenteredTemplates[phase][id] = {
               task: taskContent,
               chosen: false,
-              templates: [template],
+              templates: [template["name"]],
             };
             if (taskObj.hasOwnProperty("subtasks")) {
               let subtaskCounter = 1;
@@ -41,7 +41,7 @@ const getPhaseCenteredTemplates = (templates, phases) => {
                   subtasks[id] = {
                     subtask: subtaskContent,
                     chosen: false,
-                    templates: [template],
+                    templates: [template["name"]],
                   };
                 } else {
                   // if subtask is already added
@@ -49,7 +49,7 @@ const getPhaseCenteredTemplates = (templates, phases) => {
                   let taskId = taskToId[taskContent];
                   phaseCenteredTemplates[phase][taskId]["subtasks"][subtaskId][
                     "templates"
-                  ].push(template);
+                  ].push(template["name"]);
                 }
                 phaseCenteredTemplates[phase][id]["subtasks"] = subtasks;
               }
@@ -59,7 +59,9 @@ const getPhaseCenteredTemplates = (templates, phases) => {
             // if task is already added,
             // this happens when two or more phases share a same task
             let taskId = taskToId[taskContent];
-            phaseCenteredTemplates[phase][taskId]["templates"].push(template);
+            phaseCenteredTemplates[phase][taskId]["templates"].push(
+              template["name"]
+            );
 
             // TODO: check if the already added task has unadded subtask
           }
