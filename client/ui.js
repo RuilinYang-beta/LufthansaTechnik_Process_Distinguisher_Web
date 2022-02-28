@@ -241,7 +241,11 @@ const analyseChosenTasks = () => {
     conciseRawResult,
     templateTaskCounts
   );
-  return { verboseResult, conciseRawResult, conciseFractionResult };
+
+  const result = { verboseResult, conciseRawResult, conciseFractionResult };
+  _sendResultToServer(result);
+
+  return result;
 };
 
 const _getConciseRawResult = (verboseResult) => {
@@ -360,7 +364,14 @@ const _getVerboseResult = (templates) => {
   return templates;
 };
 
-// ============ pop up result modal ============
+const _sendResultToServer = (result) => {
+  $.post("./api/result", "hello from UI").done((response) => {
+    console.log("post successful");
+    console.log(`server replies: ${response}`);
+  });
+};
+
+// ============ result modal ============
 $(".closeModal").click(() => {
   $("#modal").css("display", "none");
 });
@@ -393,7 +404,7 @@ const showResultModal = (results) => {
 
   $(".modalPhases a#summaryPhase").click();
 
-  $("#dldBtn").click();
+  $("#dldBtn").click(() => _downloadResults(results));
 };
 
 const _makeTaskRow = (conciseRaw, conciseFraction, phase, subtask = false) => {
@@ -412,6 +423,23 @@ const _makeTaskRow = (conciseRaw, conciseFraction, phase, subtask = false) => {
       })
       .join("")
   );
+};
+
+const _downloadResults = (results) => {
+  const a = document.createElement("a");
+  const file = new Blob([JSON.stringify(results)], {
+    type: "application/json",
+  });
+  a.href = URL.createObjectURL(file);
+
+  const now = new Date();
+  const filename = `process-${now.getFullYear()}-${
+    now.getMonth() + 1
+  }-${now.getDate()}-${now.getHours()}h${now.getMinutes()}m.json`;
+  a.download = filename;
+
+  a.click();
+  URL.revokeObjectURL(a.href);
 };
 
 // TODO: the div of subtasks should have a min width

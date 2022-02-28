@@ -35,6 +35,11 @@ app.get("/api/templateNames", (req, res) => {
   res.send(JSON.stringify(templateNames));
 });
 
+app.post("/api/result", (req, res) => {
+  console.log("Got a POST request");
+  res.send("reply from server");
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
