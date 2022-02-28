@@ -14,7 +14,7 @@ const Result = require("./db/Result");
 const util = require("util");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const URI =
   "mongodb+srv://admin:1234@cluster0.uomoj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 
