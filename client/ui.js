@@ -68,25 +68,28 @@ const _focusOnlyOnOnePhase = (
   e = undefined,
   childToFocus = undefined
 ) => {
+  // changing focus is from click phase on sidebar
   if (!fromBtn && e !== undefined) {
-    // changing focus is from click phase on sidebar
     $(".navbar li a").removeClass("focused");
     $(e.target).addClass("focused");
 
-    if (e.target.innerText === phases[phases.length - 1]) __changeNextBtn();
+    const flag = e.target.innerText === phases[phases.length - 1];
+    __changeNextBtn(flag);
   } else if (fromBtn && childToFocus !== undefined) {
     // changing focus is the result of prev/next button click
     $(".navbar li a").removeClass("focused");
     $(`.navbar li:nth-child(${childToFocus}) a`).addClass("focused");
 
-    if (childToFocus === phases.length) __changeNextBtn();
+    const flag = childToFocus === phases.length;
+    __changeNextBtn(flag);
   } else {
     console.log(`Error in _focusOnlyOnOnePhase: you should not reach here!`);
   }
 };
 
-const __changeNextBtn = () => {
-  $("#nxtBtn").text("OK, See Result >");
+const __changeNextBtn = (final = true) => {
+  const btnText = final ? "OK, See Result >" : "OK, Next Phase >";
+  $("#nxtBtn").text(btnText);
 };
 
 // ============ sidebar: show tasks of the focused phase ============
@@ -194,9 +197,10 @@ $("#nxtBtn").click(() => {
   const idx = phases.indexOf(focusedPhase);
   _updateChosenTasks();
 
+  // when reach the end of survey
   if (idx === phases.length - 1) {
-    console.log("to result page");
-    // TODO: compute score
+    const results = analyseChosenTasks();
+    showResultModal(results);
     return;
   }
 
@@ -229,7 +233,6 @@ const _updateChosenTasks = () => {
   });
 };
 
-// TODO: a function to compute score
 const analyseChosenTasks = () => {
   const copy = JSON.parse(JSON.stringify(templates));
   const verboseResult = _getVerboseResult(copy);
@@ -356,5 +359,60 @@ const _getVerboseResult = (templates) => {
   }
   return templates;
 };
+
+// ============ pop up result modal ============
+$(".closeModal").click(() => {
+  $("#modal").css("display", "none");
+});
+
+const showResultModal = (results) => {
+  const { verboseResult, conciseRawResult, conciseFractionResult } = results;
+
+  $("#modal").css("display", "block");
+
+  $(".modalPhases .flex").html(
+    '<a href="#" id="summaryPhase">Summary</a>' +
+      phases.map((ele) => `<a href="#">${ele}</a>`).join("")
+  );
+
+  $(".modalPhases a").click((e) => {
+    $(".modalPhases a").removeClass("focusedInModal");
+    $(e.target).addClass("focusedInModal");
+    const phase = e.target.text;
+    $(".modalTable #taskRow").html(
+      _makeTaskRow(conciseRawResult, conciseFractionResult, phase, false)
+    );
+    $(".modalTable #subtaskRow").html(
+      _makeTaskRow(conciseRawResult, conciseFractionResult, phase, true)
+    );
+  });
+
+  $(".modalTable #tableHeader").html(
+    "<th></th>" + templateNames.map((ele) => `<th>${ele}</th>`).join("")
+  );
+
+  $(".modalPhases a#summaryPhase").click();
+
+  $("#dldBtn").click();
+};
+
+const _makeTaskRow = (conciseRaw, conciseFraction, phase, subtask = false) => {
+  const task = subtask ? "subtask" : "task";
+  return (
+    `<td>${task}</td>` +
+    templateNames
+      .map((temp) => {
+        const chosenNr = conciseRaw[temp][phase][task];
+        const totalNr = templateTaskCounts[temp][phase][task];
+        const chosenFrac = conciseFraction[temp][phase][task];
+
+        return `<td>${chosenNr} of ${totalNr} (${Math.round(
+          chosenFrac * 100
+        )}%)</td>`;
+      })
+      .join("")
+  );
+};
+
 // TODO: the div of subtasks should have a min width
 // maybe its parent, the task element also should have this min witdh
