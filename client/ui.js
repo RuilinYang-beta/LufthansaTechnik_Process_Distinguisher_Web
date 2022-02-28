@@ -24,9 +24,9 @@ $(".hamburger").click(() => {
 // ============ Initialization ============
 // ----- get data from backend -----
 // for dev: click logo to get data from server
-$("h1.logo").click(() => {
-  // for production: get data on page load
-  // $(document).ready(() => {
+// $("h1.logo").click(() => {
+// for production: get data on page load
+$(document).ready(() => {
   $.when(
     $.get("./api/templates"),
     $.get("./api/phases"),
@@ -364,13 +364,6 @@ const _getVerboseResult = (templates) => {
   return templates;
 };
 
-const _sendResultToServer = (result) => {
-  $.post("./api/result", "hello from UI").done((response) => {
-    console.log("post successful");
-    console.log(`server replies: ${response}`);
-  });
-};
-
 // ============ result modal ============
 $(".closeModal").click(() => {
   $("#modal").css("display", "none");
@@ -425,7 +418,7 @@ const _makeTaskRow = (conciseRaw, conciseFraction, phase, subtask = false) => {
   );
 };
 
-const _downloadResults = (results) => {
+const _downloadResults = (results, all = false) => {
   const a = document.createElement("a");
   const file = new Blob([JSON.stringify(results)], {
     type: "application/json",
@@ -433,7 +426,8 @@ const _downloadResults = (results) => {
   a.href = URL.createObjectURL(file);
 
   const now = new Date();
-  const filename = `process-${now.getFullYear()}-${
+  const filenameHeader = all ? "allProcesses" : "process";
+  const filename = `${filenameHeader}-${now.getFullYear()}-${
     now.getMonth() + 1
   }-${now.getDate()}-${now.getHours()}h${now.getMinutes()}m.json`;
   a.download = filename;
@@ -444,3 +438,24 @@ const _downloadResults = (results) => {
 
 // TODO: the div of subtasks should have a min width
 // maybe its parent, the task element also should have this min witdh
+
+// ============ DB related ============
+// POST: first send data to server, then server store data to DB;
+// GET: ask server to get data from DB and return to client
+const _sendResultToServer = (result) => {
+  $.post("./api/result", result).done((response) => {
+    console.log(`server replies: ${response}`);
+  });
+};
+
+$("#tempBtn").click(() => _getAllResultFromServer());
+
+const _getAllResultFromServer = () => {
+  // $.get("./api/results").done((response) => {
+  //   console.log(response);
+  // });
+  $.get("./api/results", function (data) {
+    // console.log(data);
+    _downloadResults(JSON.parse(data), true);
+  });
+};
