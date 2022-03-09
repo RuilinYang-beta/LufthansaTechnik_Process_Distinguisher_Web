@@ -24,9 +24,9 @@ $(".hamburger").click(() => {
 // ============ Initialization ============
 // ----- get data from backend -----
 // for dev: click logo to get data from server
-// $("h1.logo").click(() => {
-// for production: get data on page load
-$(document).ready(() => {
+$("h1.logo").click(() => {
+  // for production: get data on page load
+  // $(document).ready(() => {
   $.when(
     $.get("./api/templates"),
     $.get("./api/phases"),

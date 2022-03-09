@@ -55,8 +55,6 @@ app.get("/api/results", async (req, res) => {
   const all = await Result.find({});
   console.log(all);
   res.send(JSON.stringify(all));
-  // console.log(JSON.stringify(_getAllFromDB()));
-  // res.send(JSON.stringify(_getAllFromDB()));
 });
 
 app.listen(PORT, () => {
@@ -69,16 +67,6 @@ const _saveToDB = async (data) => {
   } catch (e) {
     console.log(`Error in _saveToDB: ${e.message}`);
   }
-};
-
-// return all from DB
-const _getAllFromDB = async () => {
-  const all = await Result.find({});
-  // console.log("======");
-  // console.log(all);
-  // console.log(typeof all);
-  // console.log("======");
-  return all;
 };
 
 const _logObj = (obj) => {

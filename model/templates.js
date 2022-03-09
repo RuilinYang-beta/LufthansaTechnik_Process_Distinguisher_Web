@@ -91,7 +91,7 @@ const LTAA = {
       phase: PROVISIONING,
       tasks: [
         { task: "Sourcing/ Unsourcing - TX: SRC" },
-        { task: "Sortage - Application: FastPro - Fehlteilschnittstelle" },
+        { task: "Shortage - Application: FastPro - Fehlteilschnittstelle" },
         { task: "Picking - TX: ZMPICK" },
       ],
     },
