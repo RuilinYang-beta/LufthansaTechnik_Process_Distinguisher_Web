@@ -2,13 +2,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const path = require("path");
+const { phases } = require("./model/templates");
 const {
-  templates,
-  phases,
   templateTaskCounts,
+  phaseCenteredTemplates,
   templateNames,
-} = require("./model/templates");
-const { getPhaseCenteredTemplates } = require("./utils");
+} = require("./controller/utils");
 const Result = require("./db/Result");
 
 const util = require("util");
@@ -26,7 +25,7 @@ app.use(express.static(path.join(__dirname, "client")));
 // ------ request related to templates ------
 app.get("/api/templates", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-  res.send(JSON.stringify(getPhaseCenteredTemplates(templates, phases)));
+  res.send(JSON.stringify(phaseCenteredTemplates));
 });
 
 app.get("/api/phases", (req, res) => {

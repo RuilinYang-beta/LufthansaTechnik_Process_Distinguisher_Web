@@ -68,23 +68,22 @@ const _focusOnlyOnOnePhase = (
   e = undefined,
   childToFocus = undefined
 ) => {
-  // changing focus is from click phase on sidebar
   if (!fromBtn && e !== undefined) {
+    // changing focus is from click phase on sidebar
     $(".navbar li a").removeClass("focused");
     $(e.target).addClass("focused");
-
-    const flag = e.target.innerText === phases[phases.length - 1];
-    __changeNextBtn(flag);
   } else if (fromBtn && childToFocus !== undefined) {
     // changing focus is the result of prev/next button click
     $(".navbar li a").removeClass("focused");
     $(`.navbar li:nth-child(${childToFocus}) a`).addClass("focused");
-
-    const flag = childToFocus === phases.length;
-    __changeNextBtn(flag);
   } else {
     console.log(`Error in _focusOnlyOnOnePhase: you should not reach here!`);
   }
+
+  // if it's the last phase, change the text on next button
+  const flag =
+    $(".navbar li a.focused")[0].innerText === phases[phases.length - 1];
+  __changeNextBtn(flag);
 };
 
 const __changeNextBtn = (final = true) => {
@@ -113,9 +112,9 @@ const _makeTaskElement = (rawId, phaseObj) => {
   idCleanedToRaw[cleanedId] = rawId;
 
   let taskObj = phaseObj[rawId];
-  // --- a task without subtasks ---
+  // --- a task without additional info ---
   const checkStatus = chosenIds.has(cleanedId) ? "checked" : "";
-  if (!taskObj.hasOwnProperty("subtasks")) {
+  if (!taskObj.hasOwnProperty("info")) {
     return `
     <label class="task">
      <input type="checkbox" id="${cleanedId}" ${checkStatus}/>
@@ -124,14 +123,8 @@ const _makeTaskElement = (rawId, phaseObj) => {
     `;
   }
 
-  // --- a task with subtasks ---
-  for (let subtaskRawId in taskObj["subtasks"]) {
-    const subtaskCleanedId = __getCleanedId(subtaskRawId);
-    idRawToCleaned[subtaskRawId] = subtaskCleanedId;
-    idCleanedToRaw[subtaskCleanedId] = subtaskRawId;
-  }
-
-  const subtasksHTML = __makeSubtaskElements(taskObj);
+  // --- a task with additional info ---
+  const subtasksHTML = __makeInfoElement(taskObj);
 
   return `
     <label class="task">
@@ -149,25 +142,13 @@ const __getCleanedId = (rawId) => {
   return rawId.replace(VALID_ID_PATTERN, "-");
 };
 
-const __makeSubtaskElements = (taskObj) => {
-  const subtasksHTML = Object.keys(taskObj["subtasks"])
-    .map((subtaskRawId) => {
-      const subtaskCleanedId = idRawToCleaned[subtaskRawId];
-      const checkStatus = chosenIds.has(subtaskCleanedId) ? "checked" : "";
-      return `
-      <label class="task subtask">
-        <input type="checkbox" id="${subtaskCleanedId}" ${checkStatus}/>
-        ${taskObj["subtasks"][subtaskRawId]["subtask"]}
-      </label>`;
-    })
-    .join("");
-
-  return subtasksHTML;
+const __makeInfoElement = (taskObj) => {
+  return taskObj["info"].join("<br /><br />");
 };
 
 // change the style of tasks that have subtask
 const _styleTasksWithSubtasks = () => {
-  $(".task:has(.subtask)").css("border-bottom", "2px solid #ffad00");
+  $(".task:has(.subtasks)").css("border-bottom", "2px solid #ffad00");
 };
 
 // ============ buttons: handle prev/next button click ============
@@ -205,7 +186,8 @@ $("#nxtBtn").click(() => {
   }
 
   if (idx !== -1) {
-    _focusOnlyOnOnePhase(true, 0, idx + 2); // go to next phase, idx of html ele should +2
+    // go to next phase, idx of html ele should +2
+    _focusOnlyOnOnePhase(true, 0, idx + 2);
     showTasksOfFocusedPhase();
   } else {
     console.log("Something went wrong, you shouldn't reach here");
@@ -236,59 +218,40 @@ const _updateChosenTasks = () => {
 const analyseChosenTasks = () => {
   const copy = JSON.parse(JSON.stringify(templates));
   const verboseResult = _getVerboseResult(copy);
-  const conciseRawResult = _getConciseRawResult(verboseResult);
-  const conciseFractionResult = _getConciseFractionResult(
-    conciseRawResult,
-    templateTaskCounts
-  );
+  const conciseResult = _getConciseResult(verboseResult);
+  // const conciseFractionResult = _getConciseFractionResult(
+  //   conciseRawResult,
+  //   templateTaskCounts
+  // );
 
-  const result = { verboseResult, conciseRawResult, conciseFractionResult };
-  _sendResultToServer(result);
+  const result = { verboseResult, conciseResult };
+  // _sendResultToServer(result);
 
   return result;
 };
 
-const _getConciseRawResult = (verboseResult) => {
-  const result = __initConciseResult();
-  for (let phaseKey in verboseResult) {
-    for (let taskKey in verboseResult[phaseKey]) {
-      // bookkeeping taskCount
-      if (verboseResult[phaseKey][taskKey]["chosen"]) {
-        verboseResult[phaseKey][taskKey]["templates"].forEach((temp) => {
-          result[temp][phaseKey]["task"] += 1;
-          result[temp]["Summary"]["task"] += 1;
-        });
-      }
-      // bookkeeping subtaskCount
-      if (verboseResult[phaseKey][taskKey].hasOwnProperty("subtasks")) {
-        for (let subtaskKey in verboseResult[phaseKey][taskKey]["subtasks"]) {
-          if (
-            verboseResult[phaseKey][taskKey]["subtasks"][subtaskKey]["chosen"]
-          ) {
-            verboseResult[phaseKey][taskKey]["subtasks"][subtaskKey][
-              "templates"
-            ].forEach((temp) => {
-              result[temp][phaseKey]["subtask"] += 1;
-              result[temp]["Summary"]["subtask"] += 1;
-            });
-          }
-        }
+const _getVerboseResult = (templates) => {
+  for (let phaseKey in templates) {
+    for (let taskKeyRaw in templates[phaseKey]) {
+      const taskKeyClean = idRawToCleaned[taskKeyRaw];
+      if (chosenIds.has(taskKeyClean)) {
+        templates[phaseKey][taskKeyRaw]["chosen"] = true;
       }
     }
   }
-  return result;
+  return templates;
 };
 
 const __initConciseResult = () => {
   const basis = {};
   const basisCount = {
-    task: 0,
-    subtask: 0,
+    overlappingCount: 0,
+    overlappingFraction: 0,
   };
 
   for (let tempName of templateNames) {
     const content = {
-      Summary: JSON.parse(JSON.stringify(basisCount)),
+      Total: JSON.parse(JSON.stringify(basisCount)),
     };
     for (let phase of phases) {
       content[phase] = JSON.parse(JSON.stringify(basisCount));
@@ -296,6 +259,42 @@ const __initConciseResult = () => {
     basis[tempName] = content;
   }
   return basis;
+};
+
+const _getConciseResult = (verboseResult) => {
+  const result = __initConciseResult();
+  // bookkeeping overlappingCount
+  for (let phaseKey in verboseResult) {
+    for (let taskKey in verboseResult[phaseKey]) {
+      if (verboseResult[phaseKey][taskKey]["chosen"]) {
+        verboseResult[phaseKey][taskKey]["templates"].forEach((temp) => {
+          result[temp][phaseKey]["overlappingCount"] += 1;
+          result[temp]["Total"]["overlappingCount"] += 1;
+        });
+      }
+    }
+  }
+
+  // bookkeeping overlappingFraction
+  for (let templateName in result) {
+    for (let phaseKey of Object.keys(result[templateName])) {
+      result[templateName][phaseKey]["overlappingFraction"] = __getFraction(
+        result,
+        templateName,
+        phaseKey
+      );
+    }
+  }
+  return result;
+};
+
+const __getFraction = (conciseResult, templateName, phaseKey) => {
+  const overlapCount =
+    conciseResult[templateName][phaseKey]["overlappingCount"];
+  const totalCount = templateTaskCounts[templateName][phaseKey];
+  return totalCount === 0
+    ? 0
+    : Math.round((overlapCount / totalCount) * 100) / 100;
 };
 
 const _getConciseFractionResult = (conciseRawObj, templateTaskCountObj) => {
@@ -340,28 +339,6 @@ const _computeFraction = (
 
 const __roundFraction = (fraction) => {
   return Math.round(fraction * 100) / 100;
-};
-
-const _getVerboseResult = (templates) => {
-  for (let phaseKey in templates) {
-    for (let taskKeyRaw in templates[phaseKey]) {
-      const taskKeyClean = idRawToCleaned[taskKeyRaw];
-      if (chosenIds.has(taskKeyClean)) {
-        templates[phaseKey][taskKeyRaw]["chosen"] = true;
-      }
-      if (templates[phaseKey][taskKeyRaw].hasOwnProperty("subtasks")) {
-        for (let subtaskKeyRaw in templates[phaseKey][taskKeyRaw]["subtasks"]) {
-          const subtaskKeyClean = idRawToCleaned[subtaskKeyRaw];
-          if (chosenIds.has(subtaskKeyClean)) {
-            templates[phaseKey][taskKeyRaw]["subtasks"][subtaskKeyRaw][
-              "chosen"
-            ] = true;
-          }
-        }
-      }
-    }
-  }
-  return templates;
 };
 
 // ============ result modal ============

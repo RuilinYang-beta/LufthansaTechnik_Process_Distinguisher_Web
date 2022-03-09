@@ -1,4 +1,4 @@
-const { templates, phases } = require("../model/n_templates");
+const { templates, phases } = require("../model/templates");
 const util = require("util");
 
 const getTemplateTaskCounts = (templates, phases) => {
@@ -64,19 +64,12 @@ const getPhaseCenteredTemplates = (templates, phases) => {
   return phaseCenteredTemplates;
 };
 
-const _logObj = (obj) => {
-  console.log(
-    util.inspect(obj, {
-      showHidden: false,
-      depth: null,
-      colors: true,
-    })
-  );
-};
-
-_logObj(getTemplateTaskCounts(templates, phases));
+const templateTaskCounts = getTemplateTaskCounts(templates, phases);
+const phaseCenteredTemplates = getPhaseCenteredTemplates(templates, phases);
+const templateNames = templates.map((tempObj) => tempObj.name);
 
 module.exports = {
-  getTemplateTaskCounts,
-  getPhaseCenteredTemplates,
+  templateTaskCounts,
+  phaseCenteredTemplates,
+  templateNames,
 };
