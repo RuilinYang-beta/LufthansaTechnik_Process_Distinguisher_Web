@@ -20,4 +20,15 @@ const conciseResult = {
       overlappingFraction: 0.03,
     },
   },
+  tempB: {
+    Total: {
+      overlappingCount: 99,
+      overlappingFraction: 0.26,
+    },
+    "phaseB-1": {
+      overlappingCount: 18,
+      overlappingFraction: 0.26,
+      userComment: "user said something else",
+    },
+  },
 };

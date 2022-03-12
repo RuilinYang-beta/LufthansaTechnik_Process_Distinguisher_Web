@@ -21,6 +21,7 @@ const chosenIds = new Set();
 const userCommentPerPhase = {};
 
 const VALID_ID_PATTERN = /[^A-Za-z0-9\-\:\.\_]/g;
+const TEMPLATE_LETTER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 $(".hamburger").click(() => {
   $(".navbar").toggleClass("collapse");
@@ -67,7 +68,6 @@ const initDisplay = () => {
   showTasksOfFocusedPhase();
 };
 
-// REFACTOR: better way to handle this??
 const _focusOnlyOnOnePhase = (
   fromBtn,
   e = undefined,
@@ -116,10 +116,10 @@ const _makeInputField = (focusedPhase) => {
   const hasComment = userCommentPerPhase.hasOwnProperty(focusedPhase);
   const comment = hasComment ? userCommentPerPhase[focusedPhase] : "";
   return `
-  <label class="task">
-    <input type="text" placeholder="other task/comment?" value="${comment}" />
-  </label>
-`;
+    <label class="task">
+      <input type="text" placeholder="other task/comment?" value="${comment}" />
+    </label>
+  `;
 };
 
 const _makeTaskElement = (rawId, phaseObj) => {
@@ -133,25 +133,25 @@ const _makeTaskElement = (rawId, phaseObj) => {
   const checkStatus = chosenIds.has(cleanedId) ? "checked" : "";
   if (!taskObj.hasOwnProperty("info")) {
     return `
-    <label class="task">
-     <input type="checkbox" id="${cleanedId}" ${checkStatus}/>
-      ${phaseObj[rawId]["task"]}
-    </label>
-    `;
+      <label class="task">
+       <input type="checkbox" id="${cleanedId}" ${checkStatus}/>
+        ${phaseObj[rawId]["task"]}
+      </label>
+      `;
   }
 
   // --- a task with additional info ---
   const subtasksHTML = __makeInfoElement(taskObj);
 
   return `
-    <label class="task">
-     <input type="checkbox" id="${cleanedId}"  ${checkStatus}/>
-      ${phaseObj[rawId]["task"]}
-      <div class="subtasks">
-      ${subtasksHTML}
-      </div>
-    </label>
-    `;
+      <label class="task">
+       <input type="checkbox" id="${cleanedId}"  ${checkStatus}/>
+        ${phaseObj[rawId]["task"]}
+        <div class="subtasks">
+        ${subtasksHTML}
+        </div>
+      </label>
+      `;
 };
 
 const __getCleanedId = (rawId) => {
@@ -331,17 +331,17 @@ const showResultModal = (results) => {
     '<a href="#" id="summaryPhase">Summary</a>' +
       phases.map((ele) => `<a href="#">${ele}</a>`).join("")
   );
-  // show table header
-  $(".modalTable #tableHeader").html(
-    "<th></th>" + templateNames.map((ele) => `<th>${ele}</th>`).join("")
-  );
+  // show table header with anonymized template names
+  let tableHeader = "<th></th>";
+  templateNames.forEach((ele, idx) => {
+    tableHeader += `<th>template ${TEMPLATE_LETTER[idx]}</th>`;
+  });
+  $(".modalTable #tableHeader").html(tableHeader);
   // show table content and comment when phase clicked
   $(".modalPhases a").click((e) => {
     $(".modalPhases a").removeClass("focusedInModal");
     $(e.target).addClass("focusedInModal");
     const phase = e.target.text;
-    console.log(phase);
-    console.log(userCommentPerPhase[phase]);
     $(".modalTable #taskRow").html(_makeTaskRow(conciseResult, phase));
 
     const comment = userCommentPerPhase.hasOwnProperty(phase)
@@ -391,22 +391,21 @@ const _makeTaskRow = (conciseResult, phase) => {
 //   URL.revokeObjectURL(a.href);
 // };
 
-// POST: first send data to server, then server store data to DB;
-// GET: ask server to get data from DB and return to client
+// POST: client send data to server, then server store data to DB;
 const _sendResultToServer = (result) => {
   $.post("./api/result", result).done((response) => {
     console.log(`server replies: ${response}`);
   });
 };
 
-$("#tempBtn").click(() => _getAllResultFromServer());
+// $("#tempBtn").click(() => _getAllResultFromServer());
 
-const _getAllResultFromServer = () => {
-  // $.get("./api/results").done((response) => {
-  //   console.log(response);
-  // });
-  $.get("./api/results", function (data) {
-    // console.log(data);
-    _downloadResults(JSON.parse(data), true);
-  });
-};
+// const _getAllResultFromServer = () => {
+//   // $.get("./api/results").done((response) => {
+//   //   console.log(response);
+//   // });
+//   $.get("./api/results", function (data) {
+//     // console.log(data);
+//     _downloadResults(JSON.parse(data), true);
+//   });
+// };
