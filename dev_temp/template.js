@@ -1,4 +1,8 @@
-const LTAA = {
+/*
+ * sample template, it has intuitive structure and is
+ * for maintaining purpose.
+ */
+const templateA = {
   name: "tempA",
   phases: [
     {
