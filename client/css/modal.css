@@ -89,9 +89,14 @@ tr:nth-child(even) {
   text-align: left;
 }
 
+/* ---------- 4.1.4 Modal Comment ----------*/
+.modalComment {
+  margin-top: 20px;
+}
+
 /* ---------- 4.1.4 Modal Footer ----------*/
-.modalFooter.flex {
+/* .modalFooter.flex {
   justify-content: flex-end;
   margin-top: 20px;
   margin-right: 20px;
-}
+} */

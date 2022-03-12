@@ -8,13 +8,13 @@ const getTemplateTaskCounts = (templates, phases) => {
     for (let phase of phases) {
       taskCountObj[phase] = 0;
     }
-    let total = 0;
+    let summary = 0;
     for (let phaseObj of templateObj["phases"]) {
       const taskCount = phaseObj["tasks"].length;
       taskCountObj[phaseObj["phase"]] = taskCount;
-      total += taskCount;
+      summary += taskCount;
     }
-    taskCountObj["Total"] = total;
+    taskCountObj["Summary"] = summary;
     const templateName = templateObj["name"];
     templateTaskCounts[templateName] = taskCountObj;
   }

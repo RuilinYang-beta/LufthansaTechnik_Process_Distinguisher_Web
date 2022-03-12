@@ -212,6 +212,13 @@ a.focused {
   background: var(--light);
 }
 
+.task input[type="text"] {
+  width: 100%;
+  font-size: 1em;
+  font-family: "Lucida Console", "Courier New", monospace;
+  /* border: solid; */
+}
+
 input[type="checkbox"] {
   width: 25px;
   height: 25px;
@@ -224,6 +231,7 @@ input[type="checkbox"] {
   display: none;
   position: absolute;
   left: 80px;
+  padding: 15px;
   z-index: 1;
   background-color: #fff;
   min-width: 160px;

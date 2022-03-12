@@ -1,20 +1,26 @@
+/* below are data retrieved from the server */
 // a phase-centered template, also can be used to calc score
 let templates;
+// an array of all phases
 let phases;
+// an obj bookkeeping task counts per template per phase
 let templateTaskCounts;
+// an array of all template names
 let templateNames;
 
-// id:          the id associate with a task or a subtask, returned from the server
+/* below are data specific to each user session */
+// id:          the id associate with a task, returned from the server
 // raw id:      same with id
-// cleaned id:  obtained by replace the invalid character with '-' from raw id
+// cleaned id:  obtained by replace the invalid character with '-' from raw id,
+//              because some characters are not valid html element id
 const idRawToCleaned = {};
 const idCleanedToRaw = {};
 // a set to record the id of chosen checkbox, across phases
 const chosenIds = new Set();
+// an obj bookkeeping user comment per phase
+const userCommentPerPhase = {};
 
 const VALID_ID_PATTERN = /[^A-Za-z0-9\-\:\.\_]/g;
-const TASK_WEIGHT = 1;
-const SUBTASK_WEIGHT = 0.5;
 
 $(".hamburger").click(() => {
   $(".navbar").toggleClass("collapse");
@@ -49,10 +55,9 @@ const initDisplay = () => {
     ${phases.map((p) => `<li><a href="#">${p}</a></li>`).join("")}
   `);
 
-  // phase event listener: click -> focus
-  // and show tasks of the focused phase
+  // clicking phase: change displayed tasks
   $(".navbar li a").click((e) => {
-    _updateChosenTasks();
+    _saveUserChoices($("a.focused").text()); // save user choice before changing phase
     _focusOnlyOnOnePhase(false, e);
     showTasksOfFocusedPhase();
   });
@@ -98,11 +103,23 @@ const showTasksOfFocusedPhase = () => {
 
   // clear existing tasks
   $(".taskArea div.grid").html("");
-  // write to task grid
+  // add user input field to task grid
+  $(".taskArea div.grid").append(_makeInputField(focusedPhase));
+  // add tasks to task grid
   for (let taskId in phaseObj) {
     $(".taskArea div.grid").append(_makeTaskElement(taskId, phaseObj));
   }
   _styleTasksWithSubtasks();
+};
+
+const _makeInputField = (focusedPhase) => {
+  const hasComment = userCommentPerPhase.hasOwnProperty(focusedPhase);
+  const comment = hasComment ? userCommentPerPhase[focusedPhase] : "";
+  return `
+  <label class="task">
+    <input type="text" placeholder="other task/comment?" value="${comment}" />
+  </label>
+`;
 };
 
 const _makeTaskElement = (rawId, phaseObj) => {
@@ -159,7 +176,7 @@ $(".btn").click((e) => {
 $("#prvBtn").click(() => {
   const focusedPhase = $("a.focused").text();
   const idx = phases.indexOf(focusedPhase);
-  _updateChosenTasks();
+  _saveUserChoices(focusedPhase);
 
   if (idx === 0) {
     return;
@@ -176,18 +193,19 @@ $("#prvBtn").click(() => {
 $("#nxtBtn").click(() => {
   const focusedPhase = $("a.focused").text();
   const idx = phases.indexOf(focusedPhase);
-  _updateChosenTasks();
+  _saveUserChoices(focusedPhase);
 
-  // when reach the end of survey
+  // when reach the end of survey: finalizing
   if (idx === phases.length - 1) {
     const results = analyseChosenTasks();
+    // _sendResultToServer(result);
     showResultModal(results);
     return;
   }
 
+  // otherwise go to next phase
   if (idx !== -1) {
-    // go to next phase, idx of html ele should +2
-    _focusOnlyOnOnePhase(true, 0, idx + 2);
+    _focusOnlyOnOnePhase(true, 0, idx + 2); // idx of html ele should +2
     showTasksOfFocusedPhase();
   } else {
     console.log("Something went wrong, you shouldn't reach here");
@@ -196,11 +214,12 @@ $("#nxtBtn").click(() => {
 
 $("#rstBtn").click(() => {
   $('input[type="checkbox"]').prop("checked", false);
-  _updateChosenTasks();
+  _saveUserChoices($("a.focused").text());
 });
 
 // ============ score related functions ============
-const _updateChosenTasks = () => {
+const _saveUserChoices = (focusedPhase) => {
+  // deal with input[type='checkbox']
   const checkedElements = $(".taskArea .grid input:checked").toArray();
   const uncheckedElements = $(
     ".taskArea .grid input:checkbox:not(:checked)"
@@ -213,24 +232,22 @@ const _updateChosenTasks = () => {
   uncheckedElements.forEach((ele) => {
     chosenIds.delete(ele.id);
   });
+
+  // deal with input[type='text']
+  const comment = $('input[type="text"]')[0].value;
+  if (comment !== "") userCommentPerPhase[focusedPhase] = comment;
 };
 
 const analyseChosenTasks = () => {
   const copy = JSON.parse(JSON.stringify(templates));
   const verboseResult = _getVerboseResult(copy);
   const conciseResult = _getConciseResult(verboseResult);
-  // const conciseFractionResult = _getConciseFractionResult(
-  //   conciseRawResult,
-  //   templateTaskCounts
-  // );
 
-  const result = { verboseResult, conciseResult };
-  // _sendResultToServer(result);
-
-  return result;
+  return { verboseResult, conciseResult };
 };
 
 const _getVerboseResult = (templates) => {
+  // deal with input[type='checkbox']
   for (let phaseKey in templates) {
     for (let taskKeyRaw in templates[phaseKey]) {
       const taskKeyClean = idRawToCleaned[taskKeyRaw];
@@ -238,6 +255,10 @@ const _getVerboseResult = (templates) => {
         templates[phaseKey][taskKeyRaw]["chosen"] = true;
       }
     }
+  }
+  // deal with input[type='text']
+  for (let phaseKey in userCommentPerPhase) {
+    templates[phaseKey]["userComment"] = userCommentPerPhase[phaseKey];
   }
   return templates;
 };
@@ -251,7 +272,7 @@ const __initConciseResult = () => {
 
   for (let tempName of templateNames) {
     const content = {
-      Total: JSON.parse(JSON.stringify(basisCount)),
+      Summary: JSON.parse(JSON.stringify(basisCount)),
     };
     for (let phase of phases) {
       content[phase] = JSON.parse(JSON.stringify(basisCount));
@@ -269,15 +290,14 @@ const _getConciseResult = (verboseResult) => {
       if (verboseResult[phaseKey][taskKey]["chosen"]) {
         verboseResult[phaseKey][taskKey]["templates"].forEach((temp) => {
           result[temp][phaseKey]["overlappingCount"] += 1;
-          result[temp]["Total"]["overlappingCount"] += 1;
+          result[temp]["Summary"]["overlappingCount"] += 1;
         });
       }
     }
   }
-
-  // bookkeeping overlappingFraction
   for (let templateName in result) {
-    for (let phaseKey of Object.keys(result[templateName])) {
+    for (let phaseKey in result[templateName]) {
+      // bookkeeping overlappingFraction
       result[templateName][phaseKey]["overlappingFraction"] = __getFraction(
         result,
         templateName,
@@ -297,95 +317,52 @@ const __getFraction = (conciseResult, templateName, phaseKey) => {
     : Math.round((overlapCount / totalCount) * 100) / 100;
 };
 
-const _getConciseFractionResult = (conciseRawObj, templateTaskCountObj) => {
-  const result = __initConciseResult();
-  for (let templateName in templateTaskCountObj) {
-    for (let phase in templateTaskCountObj[templateName]) {
-      result[templateName][phase]["task"] = _computeFraction(
-        "task",
-        conciseRawObj,
-        templateTaskCountObj,
-        templateName,
-        phase
-      );
-      result[templateName][phase]["subtask"] = _computeFraction(
-        "subtask",
-        conciseRawObj,
-        templateTaskCountObj,
-        templateName,
-        phase
-      );
-    }
-  }
-  return result;
-};
-
-const _computeFraction = (
-  item,
-  conciseRawObj,
-  templateTaskCountObj,
-  templateName,
-  phase
-) => {
-  const templateTaskCount = templateTaskCountObj[templateName][phase][item];
-  const chosenTaskCount = conciseRawObj[templateName][phase][item];
-  const taskFraction =
-    templateTaskCount === 0
-      ? 0
-      : __roundFraction(chosenTaskCount / templateTaskCount);
-
-  return taskFraction;
-};
-
-const __roundFraction = (fraction) => {
-  return Math.round(fraction * 100) / 100;
-};
-
 // ============ result modal ============
 $(".closeModal").click(() => {
   $("#modal").css("display", "none");
 });
 
 const showResultModal = (results) => {
-  const { verboseResult, conciseRawResult, conciseFractionResult } = results;
-
+  const { verboseResult, conciseResult } = results;
+  // show modal
   $("#modal").css("display", "block");
-
+  // show phases
   $(".modalPhases .flex").html(
     '<a href="#" id="summaryPhase">Summary</a>' +
       phases.map((ele) => `<a href="#">${ele}</a>`).join("")
   );
-
+  // show table header
+  $(".modalTable #tableHeader").html(
+    "<th></th>" + templateNames.map((ele) => `<th>${ele}</th>`).join("")
+  );
+  // show table content and comment when phase clicked
   $(".modalPhases a").click((e) => {
     $(".modalPhases a").removeClass("focusedInModal");
     $(e.target).addClass("focusedInModal");
     const phase = e.target.text;
-    $(".modalTable #taskRow").html(
-      _makeTaskRow(conciseRawResult, conciseFractionResult, phase, false)
-    );
-    $(".modalTable #subtaskRow").html(
-      _makeTaskRow(conciseRawResult, conciseFractionResult, phase, true)
-    );
+    console.log(phase);
+    console.log(userCommentPerPhase[phase]);
+    $(".modalTable #taskRow").html(_makeTaskRow(conciseResult, phase));
+
+    const comment = userCommentPerPhase.hasOwnProperty(phase)
+      ? `Your comment:<br />${userCommentPerPhase[phase]}`
+      : "";
+
+    $(".modalComment").html(comment);
   });
 
-  $(".modalTable #tableHeader").html(
-    "<th></th>" + templateNames.map((ele) => `<th>${ele}</th>`).join("")
-  );
-
   $(".modalPhases a#summaryPhase").click();
-
-  $("#dldBtn").click(() => _downloadResults(results));
+  // $("#dldBtn").click(() => _downloadResults(results));
 };
 
-const _makeTaskRow = (conciseRaw, conciseFraction, phase, subtask = false) => {
-  const task = subtask ? "subtask" : "task";
+const _makeTaskRow = (conciseResult, phase) => {
   return (
-    `<td>${task}</td>` +
+    `<td>task</td>` +
     templateNames
       .map((temp) => {
-        const chosenNr = conciseRaw[temp][phase][task];
-        const totalNr = templateTaskCounts[temp][phase][task];
-        const chosenFrac = conciseFraction[temp][phase][task];
+        const chosenNr = conciseResult[temp][phase]["overlappingCount"];
+        const chosenFrac = conciseResult[temp][phase]["overlappingFraction"];
+        const totalNr = templateTaskCounts[temp][phase];
 
         return `<td>${chosenNr} of ${totalNr} (${Math.round(
           chosenFrac * 100
@@ -395,28 +372,25 @@ const _makeTaskRow = (conciseRaw, conciseFraction, phase, subtask = false) => {
   );
 };
 
-const _downloadResults = (results, all = false) => {
-  const a = document.createElement("a");
-  const file = new Blob([JSON.stringify(results)], {
-    type: "application/json",
-  });
-  a.href = URL.createObjectURL(file);
-
-  const now = new Date();
-  const filenameHeader = all ? "allProcesses" : "process";
-  const filename = `${filenameHeader}-${now.getFullYear()}-${
-    now.getMonth() + 1
-  }-${now.getDate()}-${now.getHours()}h${now.getMinutes()}m.json`;
-  a.download = filename;
-
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-
-// TODO: the div of subtasks should have a min width
-// maybe its parent, the task element also should have this min witdh
-
 // ============ DB related ============
+// const _downloadResults = (results, all = false) => {
+//   const a = document.createElement("a");
+//   const file = new Blob([JSON.stringify(results)], {
+//     type: "application/json",
+//   });
+//   a.href = URL.createObjectURL(file);
+
+//   const now = new Date();
+//   const filenameHeader = all ? "allProcesses" : "process";
+//   const filename = `${filenameHeader}-${now.getFullYear()}-${
+//     now.getMonth() + 1
+//   }-${now.getDate()}-${now.getHours()}h${now.getMinutes()}m.json`;
+//   a.download = filename;
+
+//   a.click();
+//   URL.revokeObjectURL(a.href);
+// };
+
 // POST: first send data to server, then server store data to DB;
 // GET: ask server to get data from DB and return to client
 const _sendResultToServer = (result) => {
