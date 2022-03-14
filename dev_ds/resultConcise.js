@@ -1,7 +1,7 @@
 /*
  * Counting the overlap of user's process and each template.
  * Here the user comment is not recorded, because this structure is
- * template-centered rather than phase-centered, and user comment is
+ * template-centered, and user comment is
  * phase-centered.
  */
 const conciseResult = {

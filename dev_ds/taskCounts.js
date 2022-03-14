@@ -1,5 +1,6 @@
 /*
  * A summary of number of tasks per template per phase.
+ * It's computed from `templates`, and is helpful in calculating `conciseResult`.
  */
 const taskCounts = {
   templateA: {

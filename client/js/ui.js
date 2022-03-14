@@ -9,8 +9,7 @@ let templateTaskCounts;
 let templateNames;
 
 /* below are data specific to each user session */
-// id:          the id associate with a task, returned from the server
-// raw id:      same with id
+// raw id:      the id associate with a task, returned from the server
 // cleaned id:  obtained by replace the invalid character with '-' from raw id,
 //              because some characters are not valid html element id
 const idRawToCleaned = {};
@@ -30,10 +29,9 @@ $(".hamburger").click(() => {
 
 // ============ Initialization ============
 // ----- get data from backend -----
-// for dev: click logo to get data from server
-$("h1.logo").click(() => {
-  // for production: get data on page load
-  // $(document).ready(() => {
+// $("h1.logo").click(() => {   // for dev: click logo to get data from server
+// for production: get data on page load
+$(document).ready(() => {
   $.when(
     $.get("./api/templates"),
     $.get("./api/phases"),
@@ -198,7 +196,7 @@ $("#nxtBtn").click(() => {
   // when reach the end of survey: finalizing
   if (idx === phases.length - 1) {
     const results = analyseChosenTasks();
-    // _sendResultToServer(result);
+    _sendResultToServer(results);
     showResultModal(results);
     return;
   }
@@ -214,6 +212,7 @@ $("#nxtBtn").click(() => {
 
 $("#rstBtn").click(() => {
   $('input[type="checkbox"]').prop("checked", false);
+
   _saveUserChoices($("a.focused").text());
 });
 
@@ -373,39 +372,9 @@ const _makeTaskRow = (conciseResult, phase) => {
 };
 
 // ============ DB related ============
-// const _downloadResults = (results, all = false) => {
-//   const a = document.createElement("a");
-//   const file = new Blob([JSON.stringify(results)], {
-//     type: "application/json",
-//   });
-//   a.href = URL.createObjectURL(file);
-
-//   const now = new Date();
-//   const filenameHeader = all ? "allProcesses" : "process";
-//   const filename = `${filenameHeader}-${now.getFullYear()}-${
-//     now.getMonth() + 1
-//   }-${now.getDate()}-${now.getHours()}h${now.getMinutes()}m.json`;
-//   a.download = filename;
-
-//   a.click();
-//   URL.revokeObjectURL(a.href);
-// };
-
 // POST: client send data to server, then server store data to DB;
 const _sendResultToServer = (result) => {
   $.post("./api/result", result).done((response) => {
     console.log(`server replies: ${response}`);
   });
 };
-
-// $("#tempBtn").click(() => _getAllResultFromServer());
-
-// const _getAllResultFromServer = () => {
-//   // $.get("./api/results").done((response) => {
-//   //   console.log(response);
-//   // });
-//   $.get("./api/results", function (data) {
-//     // console.log(data);
-//     _downloadResults(JSON.parse(data), true);
-//   });
-// };

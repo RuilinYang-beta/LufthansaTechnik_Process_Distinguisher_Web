@@ -44,15 +44,15 @@ app.get("/api/templateNames", (req, res) => {
 });
 
 // ------ request related to results ------
-app.post("/api/result", (req, res) => {
+app.post("/api/result", async (req, res) => {
   // _logObj(req.body);
-  _saveToDB(req.body);
-  res.send("reply from server");
+  await _saveToDB(req.body);
+  res.send("save to DB attempted");
 });
 
 app.get("/api/results", async (req, res) => {
   const all = await Result.find({});
-  console.log(all);
+  // console.log(all);
   res.send(JSON.stringify(all));
 });
 
@@ -68,6 +68,7 @@ const _saveToDB = async (data) => {
   }
 };
 
+// a helper function to log every detail of an object for inspection
 const _logObj = (obj) => {
   console.log(
     util.inspect(obj, {
