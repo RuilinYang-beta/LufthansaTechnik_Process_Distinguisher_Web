@@ -230,7 +230,7 @@ input[type="checkbox"] {
 .subtasks {
   display: none;
   position: absolute;
-  left: 80px;
+  left: 30px;
   padding: 15px;
   z-index: 1;
   background-color: #fff;

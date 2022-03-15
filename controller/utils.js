@@ -1,4 +1,4 @@
-const { templates, phases } = require("../model/templates");
+const { templates, phases } = require("../model/templatesDummy");
 const util = require("util");
 
 const getTemplateTaskCounts = (templates, phases) => {
