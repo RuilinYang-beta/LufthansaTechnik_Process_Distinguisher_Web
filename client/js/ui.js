@@ -327,8 +327,8 @@ const showResultModal = (results) => {
   $("#modal").css("display", "block");
   // show phases
   $(".modalPhases .flex").html(
-    '<a href="#" id="summaryPhase">Summary</a>' +
-      phases.map((ele) => `<a href="#">${ele}</a>`).join("")
+    // '<a href="#" id="summaryPhase">Summary</a><br />' +
+    phases.map((ele) => `<a href="#">${ele}</a>`).join("")
   );
   // show table header with anonymized template names
   let tableHeader = "<th></th>";
@@ -341,11 +341,13 @@ const showResultModal = (results) => {
     $(".modalPhases a").removeClass("focusedInModal");
     $(e.target).addClass("focusedInModal");
     const phase = e.target.text;
+    console.log(phase);
     $(".modalTable #taskRow").html(_makeTaskRow(conciseResult, phase));
 
-    const comment = userCommentPerPhase.hasOwnProperty(phase)
-      ? `Your comment:<br />${userCommentPerPhase[phase]}`
-      : "";
+    const comment = _getComment(phase);
+    // const comment = userCommentPerPhase.hasOwnProperty(phase)
+    //   ? `Your comment:<br />${userCommentPerPhase[phase]}`
+    //   : "";
 
     $(".modalComment").html(comment);
   });
@@ -369,6 +371,23 @@ const _makeTaskRow = (conciseResult, phase) => {
       })
       .join("")
   );
+};
+
+const _getComment = (chosenPhase) => {
+  const isSummary = chosenPhase === "Summary";
+  let comment;
+  if (isSummary) {
+    comment = `Your comments:`;
+    for (let phase in userCommentPerPhase) {
+      comment += `<br />[${phase}]<br />`;
+      comment += `       - ${userCommentPerPhase[phase]}`;
+    }
+  } else {
+    comment = userCommentPerPhase.hasOwnProperty(chosenPhase)
+      ? `Your comment:<br />${userCommentPerPhase[chosenPhase]}`
+      : "";
+  }
+  return comment;
 };
 
 // ============ DB related ============
